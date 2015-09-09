@@ -2,12 +2,15 @@
 class ControllerModuleAutobilling extends Controller {
 	private $error = array();
 
+	
 	public function install() {
+		$this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "autobilling_saldo");
+
 		$this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "autobilling_saldo` (
 		  `saldo_id` int(2) NOT NULL AUTO_INCREMENT,
 		  `tgl` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-		  `saldo_bca` float NOT NULL DEFAULT '0',
-		  `saldo_mandiri` float NOT NULL DEFAULT '0',
+		  `saldo_bca` float(15,2) NOT NULL DEFAULT '0',
+		  `saldo_mandiri` float(15,2) NOT NULL DEFAULT '0',
 		  PRIMARY KEY (`saldo_id`)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;");
 
@@ -17,28 +20,28 @@ class ControllerModuleAutobilling extends Controller {
 			saldo_bca = '0',
 			saldo_mandiri = '0'");
 
-		$this->db->query("DELETE FROM " . DB_PREFIX . "autobilling_saldo WHERE saldo_id = '2'");
-		
-
-		
- 
+			
+ 		$this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "autobilling_mutasibca");
 		$this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "autobilling_mutasibca` (
 		  `mutasi_id` int(11) NOT NULL AUTO_INCREMENT,
 		  `tgl` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+		  `tglstr` varchar(20) NULL DEFAULT '2015/09/01',
 		  `ket` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-		  `debit` float NOT NULL DEFAULT '0',
-		  `kredit` float NOT NULL DEFAULT '0',
+		  `debit` float(15,2) NOT NULL DEFAULT '0',
+		  `kredit` float(15,2) NOT NULL DEFAULT '0',
 		  `berita` varchar(100) COLLATE utf8_bin DEFAULT NULL,
 		  `invoice` varchar(20) COLLATE utf8_bin DEFAULT NULL,
 		  PRIMARY KEY (`mutasi_id`)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;");
 
+		$this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "autobilling_mutasimandiri");
 		$this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "autobilling_mutasimandiri` (
 		  `mutasi_id` int(11) NOT NULL AUTO_INCREMENT,
 		  `tgl` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+		  `tglstr` varchar(20) NULL DEFAULT '2015/09/01',
 		  `ket` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-		  `debit` float NOT NULL DEFAULT '0',
-		  `kredit` float NOT NULL DEFAULT '0',
+		  `debit` float(10,2) NOT NULL DEFAULT '0',
+		  `kredit` float(10,2) NOT NULL DEFAULT '0',
 		  `berita` varchar(100) COLLATE utf8_bin DEFAULT NULL,
 		  `invoice` varchar(20) COLLATE utf8_bin DEFAULT NULL,
 		  PRIMARY KEY (`mutasi_id`)
@@ -221,6 +224,22 @@ class ControllerModuleAutobilling extends Controller {
 					'invoice' => $result['invoice']
 			);
 		}
+
+		$data['listMutasiBCA'] = array();
+		
+		$results2 = $this->getListBCA();
+                
+		foreach ($results2 as $result) {
+			$data['listMutasiBCA'][] = array(
+				'tgl' => $result['tgl'],
+				'tglstr' => $result['tglstr'],
+					'ket' => $result['ket'],
+					'debit' => $result['debit'],
+					'kredit' => $result['kredit'],
+					'berita' => $result['berita'],
+					'invoice' => $result['invoice']
+			);
+		}
 		$this->ambildata();
 		$this->response->setOutput($this->load->view('module/autobilling.tpl', $data));
 	}
@@ -234,7 +253,7 @@ class ControllerModuleAutobilling extends Controller {
 		$saldoakhirmandiri = $saldo['saldo_mandiri'];
 		
 			$data['footermessage'] = "Last Updating data...";
-			$ch = curl_init();
+/*			$ch = curl_init();
 
 			$params = 'user='.$usermandiri.'&pass='.$passmandiri.'&nomoracc='.$accmandiri.'&trxcode=1';
 			curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 0 );
@@ -245,7 +264,7 @@ class ControllerModuleAutobilling extends Controller {
 			curl_setopt( $ch, CURLOPT_POSTFIELDS, $params );
 			$hasil = curl_exec( $ch );
 
-			
+*/			
 			
 		} 
 
@@ -293,6 +312,37 @@ class ControllerModuleAutobilling extends Controller {
 		// }
 		
 		return $mandiri_data;
+	}
+
+	public function getListBCA() {
+	/*	$mandiri_data = "test";
+		$mandiri_data = $this->cache->get('autobilling_mutasimandiri');
+	    
+
+		if (!$mandiri_data) {*/
+			$bca_data = array();
+		
+			$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "autobilling_mutasibca ORDER BY tgl DESC");
+		
+			foreach ($query->rows as $result) {
+				$bca_data[] = array(
+					'tgl' => $result['tgl'],
+					'tglstr' => $result['tglstr'],
+					'ket' => $result['ket'],
+					'debit' => $result['debit'],
+					'kredit' => $result['kredit'],
+					'berita' => $result['berita'],
+					'invoice' => $result['invoice']
+					
+				);
+			
+				//$mandiri_data = array_merge($mandiri_data, $this->getBlogCategories($result['mandiri_id']));
+			}	
+	
+			//$this->cache->set('autobilling_mutasimandiri');
+		// }
+		
+		return $bca_data;
 	}
 
 

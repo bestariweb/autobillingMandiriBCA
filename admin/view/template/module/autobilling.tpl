@@ -44,7 +44,7 @@
       </ul>
 
      
-      <div class="tab-content"> 
+    <div class="tab-content"> 
 
     <!-- GENERAL /-->      
 
@@ -99,7 +99,7 @@
       
     </div> <!-- row ends -->
     
-    </div> <!-- #tab-general ends -->
+    </div> <!-- #tab-generaluser ends -->
     
 
     <!-- BCA /-->
@@ -141,11 +141,49 @@
           </div>
           <div class="col-sm-6">
             <div class="col-sm-6" style="text-align:right;font-weight:bold">Saldo:</div>
-            <div class="col-sm-6"><?php echo $saldo_bca; ?></div>
+            <div class="col-sm-6"><?php echo "Rp ".number_format($saldo_bca,2,',','.'); ?></div>
           </div>
         </div>
+        <div class="col-sm-12">
+          <?php
+            if ($listMutasiBCA){ ?>
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+              <td>Tgl</td>
+              <td>Keterangan</td>
+              <td>Debit</td>
+              <td>Kredit</td>
+              <td>Berita / Pengirim</td>
+              <td>Invoice</td>
+              <td>Status</td>
+            </tr>
+            </thead>
+            <tbody>
+              <?php
+              setlocale(LC_MONETARY, 'id_ID');
+              foreach ($listMutasiBCA as $key => $tabelmutasibca) { ?>
+                <tr>
+                  <td><?php echo $tabelmutasibca['tgl']; ?></td>
+                  <td><?php echo $tabelmutasibca['ket']; ?></td>
+                  <td><?php echo "Rp ".number_format($tabelmutasibca['debit'],2,',','.'); ?></td>
+                  <td><?php echo "Rp ".number_format($tabelmutasibca['kredit'],2,',','.'); ?></td>
+                  <td><?php echo $tabelmutasibca['berita']; ?></td>
+                  <td><?php echo $tabelmutasibca['invoice']; ?></td>
+                  <td><?php echo $tabelmutasibca['tglstr']; ?></td>
+                </tr>
+
+              <?php } ?>
+              
+            
+            
+          </tbody>
+        </table>
+        <?php } else {echo "Tidak ada mutasi";} ?>
       </div>
-    </div> <!-- #tab-design ends -->
+
+      </div>
+    </div> <!-- #tab-BCA ends -->
       
       <!-- MANDIRI /-->
       <div id="tab-mandiri" class="tab-pane">
@@ -191,6 +229,10 @@
             <div class="col-sm-6"><?php echo "Rp ".number_format($saldo_mandiri,2,',','.'); ?></div>
           </div>
         </div>
+        <div class="col-sm-12">
+        <?php
+            if ($listMutasiMandiri){
+        ?>
         <table class="table table-bordered table-hover">
             <thead>
             <tr>
@@ -203,8 +245,8 @@
             </tr>
             </thead>
             <tbody>
-            <?php
-            if ($listMutasiMandiri){
+            
+              <?php
               setlocale(LC_MONETARY, 'id_ID');
               foreach ($listMutasiMandiri as $key => $tabelmutasi) { ?>
                 <tr>
@@ -214,7 +256,7 @@
                   <td><?php echo "Rp ".number_format($tabelmutasi['kredit'],2,',','.'); ?></td>
                   <td><?php echo $tabelmutasi['berita']; ?></td>
                   <td><?php echo $tabelmutasi['invoice']; ?></td>
-            </tr>
+                </tr>
 
               <?php } ?>
             
@@ -222,10 +264,11 @@
           </tbody>
         </table>
         <?php } else {echo "Tidak ada mutasi";} ?>
-                              
+        </div>
     
       </div>
-      </div> <!-- #tab-custom-css/script ends -->
+      </div> <!-- #tab-mandiri ends -->
+
       </div> <!-- Tab content ends -->
       
      </form>
