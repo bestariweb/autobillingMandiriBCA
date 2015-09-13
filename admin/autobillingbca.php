@@ -1,5 +1,5 @@
 <?php
-$apiurl = "http://apiservices.web.id";
+$apiurl = "https://apiservices.web.id";
 $headers = 'From: Toserba123 Billing<no-reply@toserba123.com>' . "\r\n" .
     'BCC: support@bestariweb.com' . "\r\n" .
     'Reply-To: support@bestariweb.com' . "\r\n" .
