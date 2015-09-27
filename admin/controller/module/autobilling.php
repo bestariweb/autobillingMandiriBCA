@@ -292,7 +292,7 @@ class ControllerModuleAutobilling extends Controller {
 		if (!$mandiri_data) {*/
 			$mandiri_data = array();
 		
-			$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "autobilling_mutasimandiri ORDER BY tgl DESC");
+			$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "autobilling_mutasimandiri ORDER BY tgl DESC LIMIT 0,99");
 		
 			foreach ($query->rows as $result) {
 				$mandiri_data[] = array(
@@ -322,7 +322,7 @@ class ControllerModuleAutobilling extends Controller {
 		if (!$mandiri_data) {*/
 			$bca_data = array();
 		
-			$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "autobilling_mutasibca ORDER BY tgl DESC");
+			$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "autobilling_mutasibca ORDER BY tgl DESC LIMIT 0,99");
 		
 			foreach ($query->rows as $result) {
 				$bca_data[] = array(

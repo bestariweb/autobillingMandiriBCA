@@ -1,9 +1,11 @@
 <?php
-$apiurl = "http://www.apiservices.web.id";
-$headers = 'From: Toserba123 Billing<no-reply@toserba123.com>' . "\r\n" .
-    'BCC: support@bestariweb.com' . "\r\n" .
-    'Reply-To: support@bestariweb.com' . "\r\n" .
+$apiurl = "https://www.apiservices.web.id";
+$namadomain = $_SERVER["SERVER_NAME"];
+$namadomain = str_replace("www.", "", $namadomain);
+
+$headers = 'From: no-reply@'.$namadomain."\r\n" .
     'X-Mailer: PHP/' . phpversion();
+
 $pesan = "";    
 $usermandiri = "";
 $passwordmandiri = "";
@@ -134,10 +136,12 @@ if ($status != "Error"){
 		$xml=simplexml_load_string($hasil) or die("Error: Cannot create object");
 		$query = $db->query("UPDATE " . DB_PREFIX . "autobilling_saldo SET saldo_mandiri='".$saldoTabunganMandiri."' WHERE saldo_id = '1'");
 		$i=0;
-		$pesan = "Inisial data Mutasi dan saldo di OLShop..\nNomor Rek ".$accmandiri."\n".
-		         "Posisi Saldi di Database: Rp ".number_format($saldoakhirmandiri,2,',','.')."\n".
-		         "Posisi Saldo di iBanking Mandiri: Rp ".number_format((float)$saldoTabunganMandiri,2,',','.')."\n\n".
-		         "Berikut adalah data Transaksi dalam 1 Bulan :\n";
+		$pesan = "Inisial data Mutasi bank Mandiri\n".
+				 "Nomor Rek  : ".$accmandiri."\n".
+		         "Saldo Awal : Rp ".number_format($saldoakhirmandiri,2,',','.')."\n".
+		         "Saldo Okhir: Rp ".number_format((float)$saldoTabunganMandiri,2,',','.')."\n\n".
+		         "Data Transaksi 1 Bulan Yang kami tambahkan ke database:\n".
+		         "=======================================================\n";
 		foreach ($xml->transaksiMandiri as $key => $transaksiharian) {
 			if ($i>0){
 				$tgl = substr($transaksiharian[$i]->Tanggal, 0,2);
@@ -184,9 +188,9 @@ if ($status != "Error"){
 		}
 		
 		if ($emailtujuan !="") {
-					mail($emailtujuan,"Sincronisasi Data Autobilling",$pesan,$headers);
+					mail($emailtujuan,"Sincronisasi Autobilling Bank Mandiri",$pesan,$headers);
 				} else {
-					mail("billing@bestariweb.com","Sincronisasi Data Autobilling",$pesan,$headers);
+					mail("billing@bestariweb.com","Sincronisasi Autobilling Bank Mandiri",$pesan,$headers);
 				}
 
 
@@ -223,10 +227,10 @@ if ($status != "Error"){
 				$i=0;
 				//Update data mutasi
 				$pesan = 	"Ada Transaksi di bank mandiri sbb:\n".
-				         	"Posisi Saldi di Database: Rp ".number_format($saldoakhirmandiri,2,',','.')."\n".
-		         			"Posisi Saldo di iBanking Mandiri:  Rp ".number_format((float)$saldoTabunganMandiri,2,',','.')."\n\n".
+				         	"Saldo Awal Database: Rp ".number_format($saldoakhirmandiri,2,',','.')."\n".
+		         			"Saldo Akhir:  Rp ".number_format((float)$saldoTabunganMandiri,2,',','.')."\n\n".
 		         			"Berikut adalah data Transaksi masuk hari ini :\n";
-
+		        $adatransaksi = false;
 				foreach ($xml2->transaksiMandiri as $key => $transaksiharian) {
 					if ($i>0){
 						$tgl = substr($transaksiharian[$i]->Tanggal, 0,2);
@@ -270,13 +274,13 @@ if ($status != "Error"){
 						$pesan .= "\nDebit:  Rp ".number_format((float)$transaksiharian[$i]->Debet,2,',','.');
 						$pesan .= "\nKredit:  Rp ".number_format((float)$transaksiharian[$i]->Kredit,2,',','.');
 						$pesan .= "\nBerita: ".$berita;
-
+						$adatransaksi = true;
 
 					}
 					$i++;
 				}
 				
-				if ($emailtujuan !="") {
+				if (($emailtujuan !="") && ($adatransaksi)){
 					mail($emailtujuan,"Data Transaksi Harian Bank mandiri",$pesan,$headers);
 				} else {
 					mail("billing@bestariweb.com","Data Transaksi Harian Bank mandiri",$pesan,$headers);

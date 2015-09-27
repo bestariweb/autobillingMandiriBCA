@@ -1,8 +1,9 @@
 <?php
-$apiurl = "http://apiservices.web.id";
-$headers = 'From: Toserba123 Billing<no-reply@toserba123.com>' . "\r\n" .
-    'BCC: support@bestariweb.com' . "\r\n" .
-    'Reply-To: support@bestariweb.com' . "\r\n" .
+$apiurl = "https://www.apiservices.web.id";
+$namadomain = $_SERVER["SERVER_NAME"];
+$namadomain = str_replace("www.", "", $namadomain);
+
+$headers = 'From: no-reply@'.$namadomain."\r\n" .
     'X-Mailer: PHP/' . phpversion();
 $pesan = "";    
 $userBCA = "";
@@ -87,12 +88,13 @@ if (($userBCA == "") || ($passwordBCA == "") || ($accbca == "")){
 	die();
 } else {
 //Ambil Saldo di Ibanking (trxcode=3)
-$ch = curl_init();
+
 if ($saldoakhirbca != 0){
 	$params = 'user='.$userBCA.'&pass='.$passwordBCA.'&nomoracc='.$accbca.'&trxcode=2'.'&bank=BCA';
 } else {
 	$params = 'user='.$userBCA.'&pass='.$passwordBCA.'&nomoracc='.$accbca.'&trxcode=1'.'&bank=BCA';
 }
+$ch = curl_init();
 curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 0 );
 curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, 0 );
 curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
@@ -102,6 +104,8 @@ curl_setopt( $ch, CURLOPT_POSTFIELDS, $params );
 $hasil = curl_exec( $ch );
 
 $hasil = fixCDATA($hasil);
+// echo print_r($hasil);
+
 $xml=simplexml_load_string($hasil) or die("Error: Cannot create object");
 
 $status = $xml->title;
@@ -111,35 +115,18 @@ if ($status != "Error"){
 
 	$saldoTabunganbca = fixAngka($xml->Saldo);
 
-//echo "Saldo Database: ".$saldoakhirbca."<br>";
-//echo "Saldo Tabungan bca: ".$saldoTabunganbca."<br>";
 
 // Initial Mutasi Database jika belum ada record
 	if ($saldoakhirbca == '0'){
-//echo "<br><br>update database....<br>";
-//echo "<br>Inisial database untuk pertama kali setup..";
-		//Ambil Saldo di Ibanking (trxcode=3)
-		/*
-		$ch = curl_init();
 
-		$params = 'user='.$userBCA.'&pass='.$passwordBCA.'&nomoracc='.$accbca.'&trxcode=1';
-		curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 0 );
-		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, 0 );
-		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-		curl_setopt( $ch, CURLOPT_URL, $apiurl);
-		curl_setopt( $ch, CURLOPT_POSTFIELDS, $params );
-		$hasil = curl_exec( $ch );
-
-		//$hasil = fixCDATA($hasil);
-		$xml=simplexml_load_string($hasil) or die("Error: Cannot create object");
-		*/
 		$query = $db->query("UPDATE " . DB_PREFIX . "autobilling_saldo SET saldo_bca='".$saldoTabunganbca."' WHERE saldo_id = '1'");
 		$i=0;
-		$pesan = "Inisial data Mutasi dan saldo di OLShop..\nNomor Rek ".$accbca."\n".
-		         "Posisi Saldi di Database: Rp ".number_format($saldoakhirbca,2,',','.')."\n".
-		         "Posisi Saldo di klikbca: Rp ".number_format((float)$saldoTabunganbca,2,',','.')."\n\n".
-		         "Berikut adalah data Transaksi dalam 1 Bulan :\n";
+		$pesan = "Inisial data Mutasi bank BCA..\n".
+		         "Nomor Rek   : ".$accbca."\n".
+		         "Saldo Awal  : Rp ".number_format($saldoakhirbca,2,',','.')."\n".
+		         "Saldo Akhir : Rp ".number_format((float)$saldoTabunganbca,2,',','.')."\n\n".
+		         "Data Transaksi 1 Bulan Yang kami tambahkan ke database:\n".
+		         "=======================================================\n";
 		 //$pesan .= print($xml->sXML());
 		         
 
@@ -178,10 +165,10 @@ if ($status != "Error"){
 				
 				$datalama =  $db->query("SELECT * FROM ". DB_PREFIX . "autobilling_mutasibca
 					WHERE ket = '".fixKET($transaksiharian[$i]->Keterangan)."' ");
-				$statusdata = "Sudah Terdaftar";
-				if ($datalama->row['ket'] == ""){
+				$statusdata = "Sudah Terdaftar atau invalid";
 				$FixDebet = fixAngka($transaksiharian[$i]->Debet);
 				$FixKredit = fixAngka($transaksiharian[$i]->Kredit);
+				if (($datalama->row['ket'] == "") && (($FixDebet > 0) || ($FixKredit > 0))){
 				$query = $db->query("INSERT INTO ". DB_PREFIX . "autobilling_mutasibca SET
 					tgl = '".$tgl."',
 					tglstr = '".$transaksiharian[$i]->Tanggal."',
@@ -189,7 +176,7 @@ if ($status != "Error"){
 					debit = '".$FixDebet."',
 					kredit = '".$FixKredit."',
 					berita = '".$berita."', invoice = '".$invoice."'"); 
-					$statusdata = "BARU";
+					$statusdata = "BARU dan berhasil di simpan";
 
 				}
 				
@@ -269,7 +256,7 @@ if ($status != "Error"){
 									WHERE ket = '".fixKET($transaksiharian[$i]->Keterangan)."' ");
 
 						$statusdata = "Sudah Terdaftar";
-						if ($datalama->rows['ket'] == ""){
+						if (($datalama->row['ket'] == "") && (($FixDebet > 0) || ($FixKredit > 0))){
 						$query = $db->query("INSERT INTO ". DB_PREFIX . "autobilling_mutasibca SET
 							tgl = '".date('Y-m-d')."',
 							ket = '".$transaksiharian[$i]->Keterangan."',
