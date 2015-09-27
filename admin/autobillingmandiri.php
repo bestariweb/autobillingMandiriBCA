@@ -1,15 +1,9 @@
 <?php
 $apiurl = "https://www.apiservices.web.id";
-<<<<<<< HEAD
 $namadomain = $_SERVER["SERVER_NAME"];
 $namadomain = str_replace("www.", "", $namadomain);
 
 $headers = 'From: no-reply@'.$namadomain."\r\n" .
-=======
-$headers = 'From: Toserba123 Billing<no-reply@toserba123.com>' . "\r\n" .
-    'BCC: support@bestariweb.com' . "\r\n" .
-    'Reply-To: support@bestariweb.com' . "\r\n" .
->>>>>>> 21089376e34ff75748ac32d1af735a104b1c0526
     'X-Mailer: PHP/' . phpversion();
 
 $pesan = "";    
